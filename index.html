@@ -440,12 +440,12 @@ input[type=file]{
 
 <script>
 const GOOGLE_SHEET_ID = "1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs";
-const GOOGLE_SHEET_NAME = "Hoja 1";
+// La hoja se lee desde la pestaña principal del archivo.
+// No dependemos del nombre de la pestaña para evitar errores si se renombra.
 const GOOGLE_CSV_URL =
   "https://docs.google.com/spreadsheets/d/" +
   GOOGLE_SHEET_ID +
-  "/gviz/tq?tqx=out:csv&sheet=" +
-  encodeURIComponent(GOOGLE_SHEET_NAME);
+  "/gviz/tq?tqx=out:csv";
 
 const ejemplos = [
   {
@@ -740,28 +740,30 @@ function imprimirUna(index){
 }
 
 async function cargarGoogleSheets(){
+  // Mostramos ejemplos inmediatamente para que la página nunca quede vacía.
+  renderizar(ejemplos);
   setStatus("Cargando productos desde Google Sheets…");
 
   try{
     const respuesta = await fetch(GOOGLE_CSV_URL,{cache:"no-store"});
 
     if(!respuesta.ok){
-      throw new Error("No fue posible leer Google Sheets.");
+      throw new Error("Google Sheets respondió con HTTP " + respuesta.status);
     }
 
     const texto = await respuesta.text();
     const filas = csvAObjetos(texto);
 
     if(!filas.length){
-      throw new Error("La hoja no contiene productos.");
+      throw new Error("La hoja está accesible, pero no contiene filas de productos.");
     }
 
     renderizar(filas);
     setStatus("✓ " + filas.length + " etiquetas cargadas desde Google Sheets.");
   }catch(error){
-    console.error(error);
+    console.error("Google Sheets:",error);
     renderizar(ejemplos);
-    setStatus("⚠️ No se pudo leer Google Sheets. Se muestran ejemplos; revisa que la hoja esté publicada/compartida.");
+    setStatus("⚠️ No se pudo leer Google Sheets. Verifica que esté en «Cualquier persona con el enlace → Lector».");
   }
 }
 
