@@ -442,10 +442,10 @@ input[type=file]{
 const GOOGLE_SHEET_ID = "1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs";
 // La hoja se lee desde la pestaña principal del archivo.
 // No dependemos del nombre de la pestaña para evitar errores si se renombra.
-const GOOGLE_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/" +
-  GOOGLE_SHEET_ID +
-  "/gviz/tq?tqx=out:csv";
+const GOOGLE_CSV_URLS = [
+  "https://docs.google.com/spreadsheets/d/" + GOOGLE_SHEET_ID + "/gviz/tq?tqx=out:csv",
+  "https://docs.google.com/spreadsheets/d/" + GOOGLE_SHEET_ID + "/export?format=csv"
+];
 
 const ejemplos = [
   {
@@ -745,17 +745,32 @@ async function cargarGoogleSheets(){
   setStatus("Cargando productos desde Google Sheets…");
 
   try{
-    const respuesta = await fetch(GOOGLE_CSV_URL,{cache:"no-store"});
+    let filas = [];
+    let ultimoError = null;
 
-    if(!respuesta.ok){
-      throw new Error("Google Sheets respondió con HTTP " + respuesta.status);
+    for(const url of GOOGLE_CSV_URLS){
+      try{
+        const respuesta = await fetch(url,{cache:"no-store"});
+        if(!respuesta.ok){
+          throw new Error("HTTP " + respuesta.status);
+        }
+
+        const texto = await respuesta.text();
+        const candidatas = csvAObjetos(texto);
+
+        if(candidatas.length){
+          filas = candidatas;
+          break;
+        }
+
+        throw new Error("La respuesta no contiene filas de productos.");
+      }catch(error){
+        ultimoError = error;
+      }
     }
 
-    const texto = await respuesta.text();
-    const filas = csvAObjetos(texto);
-
     if(!filas.length){
-      throw new Error("La hoja está accesible, pero no contiene filas de productos.");
+      throw ultimoError || new Error("No se pudo leer la hoja.");
     }
 
     renderizar(filas);
