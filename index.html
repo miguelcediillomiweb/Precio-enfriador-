@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Generador e impresor de etiquetas de precios - Ruta 1371">
+<title>Precio Enfriador | Ruta 1371</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+:root{
+  --azul:#111827;
+  --gris:#f3f4f6;
+  --borde:#d1d5db;
+  --texto:#111827;
+  --verde:#16a34a;
+  --rojo:#dc2626;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#eef2f7;
+  color:var(--texto);
+}
+
+body{
+  padding:18px;
+}
+
+.app{
+  width:min(1400px,100%);
+  margin:0 auto;
+}
+
+header{
+  background:#111827;
+  color:#fff;
+  border-radius:16px;
+  padding:18px 20px;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
+  margin-bottom:14px;
+}
+
+.header-main{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+}
+
+.header-title{
+  margin:0;
+  font-size:clamp(22px,4vw,32px);
+  font-weight:900;
+  letter-spacing:.3px;
+}
+
+.header-subtitle{
+  margin:5px 0 0;
+  opacity:.82;
+  font-size:14px;
+}
+
+.toolbar{
+  background:#fff;
+  border:1px solid var(--borde);
+  border-radius:14px;
+  padding:14px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  box-shadow:0 4px 14px rgba(0,0,0,.06);
+  margin-bottom:14px;
+}
+
+button,
+.file-label{
+  border:0;
+  border-radius:10px;
+  padding:11px 15px;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+  background:#111827;
+  color:#fff;
+  transition:.15s ease;
+}
+
+button:hover,
+.file-label:hover{
+  transform:translateY(-1px);
+  filter:brightness(1.08);
+}
+
+button.secondary{
+  background:#374151;
+}
+
+button.green{
+  background:var(--verde);
+}
+
+input[type=file]{
+  display:none;
+}
+
+.file-label{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+}
+
+.status{
+  width:100%;
+  min-height:20px;
+  font-size:13px;
+  color:#4b5563;
+}
+
+.instructions{
+  background:#fff;
+  border:1px solid var(--borde);
+  border-radius:14px;
+  padding:13px 15px;
+  margin-bottom:18px;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.instructions strong{
+  color:#111827;
+}
+
+#labels{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:18px;
+  align-items:start;
+  justify-items:center;
+}
+
+.label-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+}
+
+.label{
+  width:70mm;
+  height:50mm;
+  min-width:70mm;
+  min-height:50mm;
+  max-width:70mm;
+  max-height:50mm;
+  overflow:hidden;
+  position:relative;
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  color:#111;
+  border:1px solid #222;
+  box-shadow:0 4px 14px rgba(0,0,0,.18);
+  display:flex;
+  flex-direction:column;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+.route-area{
+  height:12mm;
+  min-height:12mm;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  padding:1.5mm 2mm 1mm 2mm;
+  background:rgba(255,255,255,.72);
+}
+
+.route-logo{
+  max-width:30mm;
+  max-height:9mm;
+  object-fit:contain;
+  display:block;
+}
+
+.route-fallback{
+  font-size:8pt;
+  font-weight:900;
+  text-align:right;
+  line-height:1;
+}
+
+.brand-band{
+  width:100%;
+  height:9mm;
+  min-height:9mm;
+  background:#000;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:0 2mm;
+  font-size:10.5pt;
+  font-weight:900;
+  letter-spacing:.35px;
+  text-transform:uppercase;
+  line-height:1;
+}
+
+.main-area{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  padding:1.5mm 2mm 0;
+}
+
+.logo-area{
+  height:20mm;
+  min-height:20mm;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:2.5mm;
+  overflow:hidden;
+}
+
+.logo-area.one img{
+  max-width:54mm;
+  max-height:19mm;
+}
+
+.logo-area.two img{
+  max-width:28mm;
+  max-height:17mm;
+}
+
+.logo-area img{
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  display:block;
+}
+
+.no-logo{
+  font-size:7pt;
+  font-weight:700;
+  opacity:.6;
+  text-align:center;
+}
+
+.price-area{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:0 1mm;
+}
+
+.price-main{
+  font-size:31pt;
+  line-height:.9;
+  font-weight:1000;
+  letter-spacing:-1px;
+  white-space:nowrap;
+}
+
+.price-public{
+  margin-top:1mm;
+  font-size:9pt;
+  font-weight:900;
+  line-height:1;
+  white-space:nowrap;
+}
+
+.price-public strong{
+  font-size:13pt;
+}
+
+.price-divider{
+  width:92%;
+  border-top:1.2px solid rgba(0,0,0,.75);
+  margin:1.5mm auto 1mm;
+}
+
+.size-band{
+  width:100%;
+  height:8mm;
+  min-height:8mm;
+  background:#000;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:0 2mm;
+  font-size:9.5pt;
+  font-weight:900;
+  letter-spacing:.4px;
+  text-transform:uppercase;
+  line-height:1;
+}
+
+.label-actions{
+  display:flex;
+  gap:6px;
+}
+
+.label-actions button{
+  font-size:11px;
+  padding:6px 9px;
+  border-radius:7px;
+}
+
+.empty{
+  grid-column:1/-1;
+  background:#fff;
+  border:1px dashed #9ca3af;
+  border-radius:14px;
+  padding:28px;
+  text-align:center;
+  color:#6b7280;
+}
+
+@media(max-width:700px){
+  body{padding:10px}
+  #labels{
+    grid-template-columns:1fr;
+    gap:16px;
+  }
+  .toolbar{
+    align-items:stretch;
+  }
+  button,.file-label{
+    flex:1 1 45%;
+    justify-content:center;
+  }
+}
+
+@media print{
+  @page{
+    size:letter;
+    margin:5mm;
+  }
+
+  html,body{
+    background:#fff !important;
+    padding:0 !important;
+    margin:0 !important;
+  }
+
+  header,
+  .toolbar,
+  .instructions,
+  .label-actions,
+  .status{
+    display:none !important;
+  }
+
+  .app{
+    width:auto;
+    margin:0;
+  }
+
+  #labels{
+    display:grid;
+    grid-template-columns:repeat(2,70mm);
+    gap:4mm 8mm;
+    justify-content:center;
+    align-items:start;
+  }
+
+  .label-wrap{
+    break-inside:avoid;
+    page-break-inside:avoid;
+    width:70mm;
+  }
+
+  .label{
+    width:70mm;
+    height:50mm;
+    min-width:70mm;
+    min-height:50mm;
+    max-width:70mm;
+    max-height:50mm;
+    box-shadow:none;
+    border:1px solid #111;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="header-main">
+    <div>
+      <h1 class="header-title">Precio Enfriador</h1>
+      <p class="header-subtitle">Generador de etiquetas de precios · Ruta 1371</p>
+    </div>
+  </div>
+</header>
+
+<section class="toolbar">
+  <button onclick="cargarGoogleSheets()">🔄 Actualizar desde Google Sheets</button>
+
+  <label class="file-label" for="excelInput">📊 Cargar Excel</label>
+  <input id="excelInput" type="file" accept=".xlsx,.xls,.csv">
+
+  <button class="green" onclick="window.print()">🖨️ Imprimir etiquetas</button>
+  <button class="secondary" onclick="cargarEjemplos()">🧪 Ver ejemplos</button>
+
+  <div id="status" class="status">Preparando etiquetas…</div>
+</section>
+
+<section class="instructions">
+  <strong>Columnas esperadas:</strong>
+  LogoRuta, Logo1, Logo2, Marca, Tamaño, PrecioCaja, PrecioPublico, ColorInicio, ColorFin.
+  <br>
+  <strong>Formato de impresión:</strong> cada etiqueta mide aproximadamente 7 × 5 cm (70 × 50 mm).
+  Los enlaces de imágenes pueden ser URLs directas de ImgBB.
+</section>
+
+<main id="labels"></main>
+
+</div>
+
+<script>
+const GOOGLE_SHEET_ID = "1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs";
+const GOOGLE_SHEET_NAME = "Hoja 1";
+const GOOGLE_CSV_URL =
+  "https://docs.google.com/spreadsheets/d/" +
+  GOOGLE_SHEET_ID +
+  "/gviz/tq?tqx=out:csv&sheet=" +
+  encodeURIComponent(GOOGLE_SHEET_NAME);
+
+const ejemplos = [
+  {
+    LogoRuta:"",
+    Logo1:"",
+    Logo2:"",
+    Marca:"PEÑAFIEL SANGRÍA",
+    Tamaño:"600 ML",
+    PrecioCaja:"180",
+    PrecioPublico:"18",
+    ColorInicio:"#f7f7f7",
+    ColorFin:"#ef4444"
+  },
+  {
+    LogoRuta:"",
+    Logo1:"",
+    Logo2:"",
+    Marca:"PEÑAFIEL LIMÓN",
+    Tamaño:"2 LITROS",
+    PrecioCaja:"210",
+    PrecioPublico:"25",
+    ColorInicio:"#f7f7f7",
+    ColorFin:"#22c55e"
+  },
+  {
+    LogoRuta:"",
+    Logo1:"",
+    Logo2:"",
+    Marca:"PEÑAFIEL MINERAL Y TWIST",
+    Tamaño:"1 LITRO",
+    PrecioCaja:"190",
+    PrecioPublico:"20",
+    ColorInicio:"#f7f7f7",
+    ColorFin:"#3b82f6"
+  },
+  {
+    LogoRuta:"",
+    Logo1:"",
+    Logo2:"",
+    Marca:"DR PEPPER",
+    Tamaño:"355 ML LATA",
+    PrecioCaja:"240",
+    PrecioPublico:"15",
+    ColorInicio:"#f7f7f7",
+    ColorFin:"#991b1b"
+  },
+  {
+    LogoRuta:"",
+    Logo1:"",
+    Logo2:"",
+    Marca:"AGUAFIEL",
+    Tamaño:"1.5 LITROS PET",
+    PrecioCaja:"120",
+    PrecioPublico:"12",
+    ColorInicio:"#f7f7f7",
+    ColorFin:"#0ea5e9"
+  }
+];
+
+document.getElementById("excelInput").addEventListener("change", manejarExcel);
+
+window.addEventListener("DOMContentLoaded", () => {
+  cargarGoogleSheets();
+});
+
+function setStatus(texto){
+  document.getElementById("status").textContent = texto;
+}
+
+function escaparHTML(valor){
+  return String(valor ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function normalizarEncabezado(valor){
+  return String(valor ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/\s+/g,"")
+    .toLowerCase();
+}
+
+function normalizarFila(obj){
+  const salida = {};
+
+  Object.keys(obj || {}).forEach(key => {
+    salida[normalizarEncabezado(key)] = obj[key];
+  });
+
+  return {
+    LogoRuta: obtenerCampo(salida, ["logoruta","ruta","logoruta1371"]),
+    Logo1: obtenerCampo(salida, ["logo1","logo","logoproducto"]),
+    Logo2: obtenerCampo(salida, ["logo2"]),
+    Marca: obtenerCampo(salida, ["marca","producto","nombre"]),
+    Tamaño: obtenerCampo(salida, ["tamano","tamaño","presentacion","presentación"]),
+    PrecioCaja: obtenerCampo(salida, ["preciocaja","preciocajas","precio","preciopor caja"]),
+    PrecioPublico: obtenerCampo(salida, ["preciopublico","preciopublica","publico","público"]),
+    ColorInicio: obtenerCampo(salida, ["colorinicio","color1","coloriniciohex"]) || "#ffffff",
+    ColorFin: obtenerCampo(salida, ["colorfin","color2","colorfinhex"]) || "#dbeafe"
+  };
+}
+
+function obtenerCampo(obj, posibles){
+  for(const nombre of posibles){
+    const clave = normalizarEncabezado(nombre);
+    if(Object.prototype.hasOwnProperty.call(obj,clave)){
+      return obj[clave] ?? "";
+    }
+  }
+  return "";
+}
+
+function numeroLimpio(valor){
+  if(valor === null || valor === undefined || valor === "") return "";
+  const texto = String(valor).trim().replace(/[$,]/g,"");
+  const numero = Number(texto);
+
+  if(Number.isNaN(numero)) return String(valor).trim();
+
+  return numero.toLocaleString("es-MX",{
+    minimumFractionDigits:0,
+    maximumFractionDigits:2
+  });
+}
+
+function precioConSigno(valor){
+  const limpio = numeroLimpio(valor);
+  return limpio ? "$" + limpio : "$0";
+}
+
+function colorSeguro(color, fallback){
+  const valor = String(color || "").trim();
+  if(/^#[0-9a-fA-F]{3,8}$/.test(valor)) return valor;
+  if(/^rgba?\([\d\s.,%]+\)$/.test(valor)) return valor;
+  if(/^hsla?\([\d\s.,%]+\)$/.test(valor)) return valor;
+  return fallback;
+}
+
+function imagenHTML(url, clase, alt){
+  if(!url) return "";
+
+  const limpia = String(url).trim();
+  if(!/^https?:\/\//i.test(limpia)) return "";
+
+  return '<img class="' + clase + '" src="' + escaparHTML(limpia) +
+    '" alt="' + escaparHTML(alt || "") +
+    '" loading="lazy" onerror="this.style.display=\'none\'">';
+}
+
+function renderizar(productos){
+  const contenedor = document.getElementById("labels");
+
+  if(!Array.isArray(productos) || productos.length === 0){
+    contenedor.innerHTML =
+      '<div class="empty">No hay productos para mostrar.</div>';
+    return;
+  }
+
+  contenedor.innerHTML = productos.map((producto,index) => {
+    const p = normalizarFila(producto);
+
+    const c1 = colorSeguro(p.ColorInicio,"#ffffff");
+    const c2 = colorSeguro(p.ColorFin,"#dbeafe");
+
+    const logos = [];
+    if(p.Logo1) logos.push(p.Logo1);
+    if(p.Logo2) logos.push(p.Logo2);
+
+    const claseLogos = logos.length <= 1 ? "one" : "two";
+
+    let logosHTML = logos
+      .slice(0,2)
+      .map((url,i) => imagenHTML(url,"logo-img","Logo " + (i+1)))
+      .join("");
+
+    if(!logosHTML){
+      logosHTML = '<div class="no-logo">LOGO DEL PRODUCTO</div>';
+    }
+
+    const rutaHTML = p.LogoRuta
+      ? imagenHTML(p.LogoRuta,"route-logo","Ruta 1371")
+      : '<div class="route-fallback">RUTA 1371</div>';
+
+    return `
+      <div class="label-wrap">
+        <article
+          class="label"
+          style="--c1:${escaparHTML(c1)};--c2:${escaparHTML(c2)}"
+          data-index="${index}"
+        >
+          <div class="route-area">
+            ${rutaHTML}
+          </div>
+
+          <div class="brand-band">
+            ${escaparHTML(p.Marca || "PRODUCTO")}
+          </div>
+
+          <div class="main-area">
+            <div class="logo-area ${claseLogos}">
+              ${logosHTML}
+            </div>
+
+            <div class="price-area">
+              <div class="price-main">${precioConSigno(p.PrecioCaja)}</div>
+
+              ${p.PrecioPublico !== ""
+                ? '<div class="price-divider"></div><div class="price-public">PÚBLICO <strong>' +
+                  precioConSigno(p.PrecioPublico) +
+                  '</strong></div>'
+                : ''
+              }
+            </div>
+          </div>
+
+          <div class="size-band">
+            ${escaparHTML(p.Tamaño || "PRESENTACIÓN")}
+          </div>
+        </article>
+
+        <div class="label-actions">
+          <button onclick="imprimirUna(${index})">🖨️ Imprimir</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  window.__productosActuales = productos.map(normalizarFila);
+}
+
+function imprimirUna(index){
+  const productos = window.__productosActuales || [];
+  const producto = productos[index];
+  if(!producto) return;
+
+  const htmlActual = document.documentElement.outerHTML;
+  const contenedor = document.getElementById("labels");
+
+  const etiqueta = contenedor.querySelectorAll(".label")[index];
+  if(!etiqueta) return;
+
+  const ventana = window.open("","_blank","width=900,height=700");
+  if(!ventana){
+    alert("El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para este sitio.");
+    return;
+  }
+
+  ventana.document.open();
+  ventana.document.write(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Etiqueta</title>
+      <style>
+        @page{size:70mm 50mm;margin:0}
+        html,body{margin:0;padding:0;width:70mm;height:50mm}
+        body{display:flex;align-items:flex-start;justify-content:flex-start}
+        .label{width:70mm!important;height:50mm!important;min-width:70mm!important;min-height:50mm!important;max-width:70mm!important;max-height:50mm!important;box-shadow:none!important;border:1px solid #111!important;overflow:hidden;display:flex;flex-direction:column;position:relative;background:linear-gradient(135deg,var(--c1),var(--c2));color:#111;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+        .route-area{height:12mm;min-height:12mm;display:flex;align-items:center;justify-content:flex-end;padding:1.5mm 2mm 1mm;background:rgba(255,255,255,.72)}
+        .route-logo{max-width:30mm;max-height:9mm;object-fit:contain;display:block}
+        .route-fallback{font-size:8pt;font-weight:900}
+        .brand-band{width:100%;height:9mm;min-height:9mm;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 2mm;font-size:10.5pt;font-weight:900;letter-spacing:.35px;text-transform:uppercase;line-height:1}
+        .main-area{flex:1;min-height:0;display:flex;flex-direction:column;padding:1.5mm 2mm 0}
+        .logo-area{height:20mm;min-height:20mm;display:flex;align-items:center;justify-content:center;gap:2.5mm;overflow:hidden}
+        .logo-area.one img{max-width:54mm;max-height:19mm}
+        .logo-area.two img{max-width:28mm;max-height:17mm}
+        .logo-area img{width:auto;height:auto;object-fit:contain;display:block}
+        .no-logo{font-size:7pt;font-weight:700;opacity:.6}
+        .price-area{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 1mm}
+        .price-main{font-size:31pt;line-height:.9;font-weight:1000;letter-spacing:-1px;white-space:nowrap}
+        .price-public{margin-top:1mm;font-size:9pt;font-weight:900;line-height:1;white-space:nowrap}
+        .price-public strong{font-size:13pt}
+        .price-divider{width:92%;border-top:1.2px solid rgba(0,0,0,.75);margin:1.5mm auto 1mm}
+        .size-band{width:100%;height:8mm;min-height:8mm;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 2mm;font-size:9.5pt;font-weight:900;letter-spacing:.4px;text-transform:uppercase;line-height:1}
+      </style>
+    </head>
+    <body>${etiqueta.outerHTML}</body>
+    </html>
+  `);
+  ventana.document.close();
+  ventana.focus();
+
+  setTimeout(() => {
+    ventana.print();
+    ventana.close();
+  },500);
+}
+
+async function cargarGoogleSheets(){
+  setStatus("Cargando productos desde Google Sheets…");
+
+  try{
+    const respuesta = await fetch(GOOGLE_CSV_URL,{cache:"no-store"});
+
+    if(!respuesta.ok){
+      throw new Error("No fue posible leer Google Sheets.");
+    }
+
+    const texto = await respuesta.text();
+    const filas = csvAObjetos(texto);
+
+    if(!filas.length){
+      throw new Error("La hoja no contiene productos.");
+    }
+
+    renderizar(filas);
+    setStatus("✓ " + filas.length + " etiquetas cargadas desde Google Sheets.");
+  }catch(error){
+    console.error(error);
+    renderizar(ejemplos);
+    setStatus("⚠️ No se pudo leer Google Sheets. Se muestran ejemplos; revisa que la hoja esté publicada/compartida.");
+  }
+}
+
+function csvAObjetos(texto){
+  const filas = parseCSV(texto);
+  if(filas.length < 2) return [];
+
+  const encabezados = filas[0];
+
+  return filas.slice(1)
+    .filter(fila => fila.some(celda => String(celda ?? "").trim() !== ""))
+    .map(fila => {
+      const obj = {};
+      encabezados.forEach((encabezado,i) => {
+        obj[encabezado] = fila[i] ?? "";
+      });
+      return normalizarFila(obj);
+    });
+}
+
+function parseCSV(texto){
+  const filas = [];
+  let fila = [];
+  let campo = "";
+  let dentroComillas = false;
+
+  for(let i=0;i<texto.length;i++){
+    const caracter = texto[i];
+    const siguiente = texto[i+1];
+
+    if(caracter === '"' && dentroComillas && siguiente === '"'){
+      campo += '"';
+      i++;
+      continue;
+    }
+
+    if(caracter === '"'){
+      dentroComillas = !dentroComillas;
+      continue;
+    }
+
+    if(caracter === "," && !dentroComillas){
+      fila.push(campo);
+      campo = "";
+      continue;
+    }
+
+    if((caracter === "\n" || caracter === "\r") && !dentroComillas){
+      if(caracter === "\r" && siguiente === "\n") i++;
+      fila.push(campo);
+      campo = "";
+
+      if(fila.some(v => String(v).trim() !== "")){
+        filas.push(fila);
+      }
+
+      fila = [];
+      continue;
+    }
+
+    campo += caracter;
+  }
+
+  if(campo.length || fila.length){
+    fila.push(campo);
+    if(fila.some(v => String(v).trim() !== "")){
+      filas.push(fila);
+    }
+  }
+
+  return filas;
+}
+
+async function manejarExcel(evento){
+  const archivo = evento.target.files?.[0];
+  if(!archivo) return;
+
+  setStatus("Leyendo archivo Excel…");
+
+  try{
+    if(typeof XLSX === "undefined"){
+      throw new Error("No se cargó la biblioteca de Excel.");
+    }
+
+    const buffer = await archivo.arrayBuffer();
+    const libro = XLSX.read(buffer,{type:"array"});
+    const primeraHoja = libro.Sheets[libro.SheetNames[0]];
+
+    const datos = XLSX.utils.sheet_to_json(primeraHoja,{
+      defval:"",
+      raw:false
+    });
+
+    if(!datos.length){
+      throw new Error("El archivo no contiene filas de productos.");
+    }
+
+    const productos = datos.map(normalizarFila);
+    renderizar(productos);
+
+    setStatus("✓ " + productos.length + " etiquetas cargadas desde " + archivo.name + ".");
+  }catch(error){
+    console.error(error);
+    setStatus("❌ Error al leer el Excel: " + error.message);
+  }finally{
+    evento.target.value = "";
+  }
+}
+
+function cargarEjemplos(){
+  renderizar(ejemplos);
+  setStatus("Mostrando " + ejemplos.length + " ejemplos.");
+}
+</script>
+</body>
+</html>
