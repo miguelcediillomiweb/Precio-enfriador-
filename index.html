@@ -173,11 +173,13 @@ input[type=file]{
   opacity:1;
   z-index:1000;
 }
-.seasonal-decoration svg{
+.seasonal-decoration img{
   width:100%;
   height:100%;
   display:block;
-  overflow:visible;
+  object-fit:contain;
+  background:transparent;
+  mix-blend-mode:multiply;
 }
 .label{
   width:70mm;
@@ -375,7 +377,7 @@ input[type=file]{
     print-color-adjust:exact;
   }
 }
-@media print and (min-width:700px){\n  #labels{grid-template-columns:repeat(2,70mm);gap:4mm 8mm;justify-content:center;}\n}\n\n@media print{\n  body.thermal-print #labels{display:flex;flex-direction:column;align-items:flex-start;gap:0;margin:0;padding:0;}\n  body.thermal-print .label-wrap{width:50mm;margin:0;padding:0;break-inside:avoid;page-break-inside:avoid;}\n  body.thermal-print .label{width:50mm!important;min-width:50mm!important;max-width:50mm!important;height:50mm!important;min-height:50mm!important;max-height:50mm!important;margin:0;border:1px solid #111;box-shadow:none;}\n  body.thermal-print .route-area{height:6mm;min-height:6mm;padding:0 1.5mm;}\n  body.thermal-print .route-logo{max-width:25mm;max-height:5mm;}\n  body.thermal-print .brand-band{height:7mm;min-height:7mm;font-size:9pt;padding:0 1mm;}\n  body.thermal-print .logo-area{width:45%;min-width:45%;}\n  body.thermal-print .logo-area.one img{max-width:21mm;max-height:23mm;}\n  body.thermal-print .logo-area.two img{max-width:19mm;max-height:15mm;}\n  body.thermal-print .price-main{font-size:42pt;letter-spacing:-2px;}\n  body.thermal-print .size-band{height:7mm;min-height:7mm;font-size:8.5pt;padding:0 1mm;}\n  body.thermal-print .seasonal-decoration span{width:6mm;height:6mm;}\n}\n@media print{\n  @page{size:letter;margin:5mm;}\n  body.thermal-print{width:50mm!important;margin:0!important;padding:0!important;}\n  body.thermal-print #labels{width:50mm!important;}\n  body.thermal-print .app{width:50mm!important;margin:0!important;}\n}\n@media print and (min-width:700px){\n  body.thermal-print{width:50mm!important;}\n  body.thermal-print #labels{grid-template-columns:50mm;}\n}\n</style>
+@media print and (min-width:700px){\n  #labels{grid-template-columns:repeat(2,70mm);gap:4mm 8mm;justify-content:center;}\n}\n\n@media print{\n  body.thermal-print #labels{display:flex;flex-direction:column;align-items:flex-start;gap:0;margin:0;padding:0;}\n  body.thermal-print .label-wrap{width:50mm;margin:0;padding:0;break-inside:avoid;page-break-inside:avoid;}\n  body.thermal-print .label{width:50mm!important;min-width:50mm!important;max-width:50mm!important;height:50mm!important;min-height:50mm!important;max-height:50mm!important;margin:0;border:1px solid #111;box-shadow:none;}\n  body.thermal-print .route-area{height:6mm;min-height:6mm;padding:0 1.5mm;}\n  body.thermal-print .route-logo{max-width:25mm;max-height:5mm;}\n  body.thermal-print .brand-band{height:7mm;min-height:7mm;font-size:9pt;padding:0 1mm;}\n  body.thermal-print .logo-area{width:45%;min-width:45%;}\n  body.thermal-print .logo-area.one img{max-width:21mm;max-height:23mm;}\n  body.thermal-print .logo-area.two img{max-width:19mm;max-height:15mm;}\n  body.thermal-print .price-main{font-size:42pt;letter-spacing:-2px;}\n  body.thermal-print .size-band{height:7mm;min-height:7mm;font-size:8.5pt;padding:0 1mm;}\n  body.thermal-print .seasonal-decoration span{width:5mm;height:5mm;}\n}\n@media print{\n  @page{size:letter;margin:5mm;}\n  body.thermal-print{width:50mm!important;margin:0!important;padding:0!important;}\n  body.thermal-print #labels{width:50mm!important;}\n  body.thermal-print .app{width:50mm!important;margin:0!important;}\n}\n@media print and (min-width:700px){\n  body.thermal-print{width:50mm!important;}\n  body.thermal-print #labels{grid-template-columns:50mm;}\n}\n</style>
 </head>
 
 <body>
@@ -499,49 +501,29 @@ function imprimirTermica(){
 }
 
 function decoracionTemporada(index){
-  // Halloween: 6 elementos por etiqueta, uno de cada tipo.
-  // Se distribuyen según el índice para variar la composición entre etiquetas.
-  const iconos=[
-    // Calabaza
-    '<svg viewBox="0 0 60 60"><path d="M30 8 C43 8 52 19 49 35 C47 47 39 53 30 53 C21 53 13 47 11 35 C8 19 17 8 30 8Z" fill="#ff8a00" stroke="#171717" stroke-width="3"/><path d="M24 9 L23 3 M36 9 L37 3 M20 26 L25 30 M40 26 L35 30 M21 40 Q30 47 39 40" fill="none" stroke="#171717" stroke-width="3" stroke-linecap="round"/></svg>',
-
-    // Murciélago
-    '<svg viewBox="0 0 60 60"><path d="M5 38 C8 18 20 12 30 25 C40 12 52 18 55 38 C46 33 40 33 35 39 L30 50 L25 39 C20 33 14 33 5 38Z" fill="#171717"/><circle cx="23" cy="27" r="2.5" fill="#ff8a00"/><circle cx="37" cy="27" r="2.5" fill="#ff8a00"/></svg>',
-
-    // Pan de muerto
-    '<svg viewBox="0 0 60 60"><ellipse cx="30" cy="35" rx="21" ry="13" fill="#d99a62" stroke="#7a4725" stroke-width="3"/><circle cx="30" cy="17" r="6" fill="#d99a62" stroke="#7a4725" stroke-width="3"/><path d="M21 31 Q30 22 39 31 M20 39 Q30 45 40 39" fill="none" stroke="#fff0d5" stroke-width="3" stroke-linecap="round"/></svg>',
-
-    // Bruja
-    '<svg viewBox="0 0 60 60"><circle cx="31" cy="34" r="11" fill="#e8b79a" stroke="#171717" stroke-width="2"/><path d="M18 29 L31 6 L45 29Z" fill="#38205f" stroke="#171717" stroke-width="3"/><path d="M17 31 Q31 25 46 31 L42 48 L20 48Z" fill="#38205f" stroke="#171717" stroke-width="2"/><path d="M39 40 Q53 35 55 43 Q45 44 40 46" fill="none" stroke="#171717" stroke-width="3"/></svg>',
-
-    // Calavera
-    '<svg viewBox="0 0 60 60"><path d="M30 7 C17 7 10 17 12 30 C13 40 20 44 25 45 V53 H35 V45 C40 44 47 40 48 30 C50 17 43 7 30 7Z" fill="#f2f2e8" stroke="#171717" stroke-width="3"/><circle cx="22" cy="27" r="5" fill="#171717"/><circle cx="38" cy="27" r="5" fill="#171717"/><path d="M27 37 L30 33 L33 37 M25 44 H35" fill="none" stroke="#171717" stroke-width="3"/></svg>',
-
-    // Esqueleto
-    '<svg viewBox="0 0 60 60"><circle cx="30" cy="12" r="8" fill="#f2f2e8" stroke="#171717" stroke-width="3"/><path d="M30 20 V43 M18 28 H42 M22 38 H38 M23 43 L17 53 M37 43 L43 53 M25 23 L18 34 M35 23 L42 34" fill="none" stroke="#f2f2e8" stroke-width="4" stroke-linecap="round"/></svg>',
-
-    // Velas
-    '<svg viewBox="0 0 60 60"><path d="M25 20 H37 V51 H25Z" fill="#f3e7c8" stroke="#8b5a2b" stroke-width="2"/><path d="M31 20 Q26 13 31 7 Q36 13 31 20Z" fill="#ff8a00" stroke="#d35400" stroke-width="2"/><path d="M22 51 H40" stroke="#8b5a2b" stroke-width="3"/></svg>'
+  // Halloween: imágenes reales proporcionadas por el usuario.
+  // Se distribuyen alrededor de la etiqueta sin invadir la zona central.
+  const imagenes=[
+    "https://i.ibb.co/tPbhQwkj/images-2026-09-28-T092108-707.jpg",
+    "https://i.ibb.co/tMdJ1z9g/images-2026-09-28-T092146-860.jpg",
+    "https://i.ibb.co/HpqsxQ2W/images-2026-09-28-T092201-103.jpg",
+    "https://i.ibb.co/dnvwwYY/images-13.png",
+    "https://i.ibb.co/zT0DLbbC/images-14.png"
   ];
 
   const posiciones=[
-    [[1,1],[86,1],[1,40],[86,40],[18,82],[68,82]],
-    [[1,1],[86,1],[86,38],[1,38],[18,82],[68,82]],
-    [[1,1],[86,1],[1,42],[86,42],[20,82],[70,82]],
-    [[86,1],[1,1],[86,42],[1,42],[68,82],[18,82]]
+    [[1,1],[86,1],[1,40],[86,40],[45,82]],
+    [[86,1],[1,1],[86,40],[1,40],[45,82]],
+    [[1,1],[45,1],[86,1],[1,40],[86,40]],
+    [[86,1],[45,1],[1,1],[86,40],[1,40]]
   ][index%4];
 
   let html='<div class="seasonal-decoration">';
-  for(let i=0;i<6;i++){
-    const icono=iconos[i];
-    html+='<span style="left:'+posiciones[i][0]+'%;top:'+posiciones[i][1]+'%">'+icono+'</span>';
-  }
+  imagenes.forEach((url,i)=>{
+    html+='<span style="left:'+posiciones[i][0]+'%;top:'+posiciones[i][1]+'%"><img src="'+url+'" alt="" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></span>';
+  });
   html+='</div>';
   return html;
-}
-
-function setStatus(texto){
-  document.getElementById("status").textContent = texto;
 }
 
 function escaparHTML(valor){
