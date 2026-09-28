@@ -155,8 +155,30 @@ input[type=file]{
 }
 
 
-.seasonal-decoration{position:absolute;inset:0;pointer-events:none;z-index:20;overflow:hidden;font-family:Arial,sans-serif}
-.seasonal-decoration span{position:absolute;font-size:9pt;line-height:1;opacity:.78;filter:saturate(.9)}
+.seasonal-decoration{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  z-index:999;
+  overflow:hidden;
+}
+.seasonal-decoration span{
+  position:absolute;
+  width:10mm;
+  height:10mm;
+  display:block;
+  line-height:0;
+  opacity:1;
+  z-index:1000;
+}
+.seasonal-decoration svg{
+  width:100%;
+  height:100%;
+  display:block;
+  overflow:visible;
+}
 .label{
   width:70mm;
   height:50mm;
@@ -477,19 +499,25 @@ function imprimirTermica(){
 }
 
 function decoracionTemporada(index){
-  // Octubre: Halloween. Se usan SVG para que se vean igual en Android, PC e impresión.
-  const iconos=[
-    '<svg viewBox="0 0 60 60"><path d="M10 35 C12 18 25 13 30 23 C35 13 48 18 50 35 C44 30 39 30 35 34 L30 41 L25 34 C21 30 16 30 10 35Z" fill="#111"/><circle cx="23" cy="27" r="2.5" fill="#ff8a00"/><circle cx="37" cy="27" r="2.5" fill="#ff8a00"/></svg>',
-    '<svg viewBox="0 0 60 60"><path d="M30 9 C43 9 51 20 48 34 C46 46 38 52 30 52 C22 52 14 46 12 34 C9 20 17 9 30 9Z" fill="#ff8a00" stroke="#111" stroke-width="3"/><path d="M25 9 L24 3 M35 9 L36 3 M21 25 L25 28 M39 25 L35 28 M24 38 Q30 43 36 38" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/></svg>',
-    '<svg viewBox="0 0 60 60"><path d="M30 7 L34 19 L47 17 L39 27 L49 35 L36 34 L30 48 L24 34 L11 35 L21 27 L13 17 L26 19Z" fill="none" stroke="#111" stroke-width="3" stroke-linejoin="round"/></svg>',
-    '<svg viewBox="0 0 60 60"><circle cx="30" cy="20" r="7" fill="#111"/><circle cx="30" cy="34" r="10" fill="#111"/><path d="M24 16 L14 10 M36 16 L46 10 M21 23 L10 21 M39 23 L50 21 M21 37 L10 42 M39 37 L50 42 M25 43 L18 52 M35 43 L42 52" stroke="#111" stroke-width="3" stroke-linecap="round"/></svg>'
-  ];
+  // Tema Halloween: se muestra desde ahora para preparar octubre.
+  const murc='<svg viewBox="0 0 60 60"><path d="M5 38 C8 18 20 12 30 25 C40 12 52 18 55 38 C46 33 40 33 35 39 L30 50 L25 39 C20 33 14 33 5 38Z" fill="#171717"/><circle cx="23" cy="27" r="2.5" fill="#ff8a00"/><circle cx="37" cy="27" r="2.5" fill="#ff8a00"/></svg>';
+  const cal='<svg viewBox="0 0 60 60"><path d="M30 8 C43 8 52 19 49 35 C47 47 39 53 30 53 C21 53 13 47 11 35 C8 19 17 8 30 8Z" fill="#ff8a00" stroke="#171717" stroke-width="3"/><path d="M24 9 L23 3 M36 9 L37 3 M20 26 L25 30 M40 26 L35 30 M21 40 Q30 47 39 40" fill="none" stroke="#171717" stroke-width="3" stroke-linecap="round"/></svg>';
+  const ara='<svg viewBox="0 0 60 60"><circle cx="30" cy="20" r="7" fill="#171717"/><circle cx="30" cy="34" r="11" fill="#171717"/><path d="M23 17 L10 9 M37 17 L50 9 M20 24 L7 21 M40 24 L53 21 M19 35 L6 40 M41 35 L54 40 M24 43 L16 53 M36 43 L44 53" stroke="#171717" stroke-width="3" stroke-linecap="round"/></svg>';
+  const tel='<svg viewBox="0 0 60 60"><path d="M5 7 H55 M30 7 V20 M12 7 V15 M48 7 V15 M8 18 C8 31 20 30 20 42 C20 50 12 51 7 53 M52 18 C52 31 40 30 40 42 C40 50 48 51 53 53" fill="none" stroke="#171717" stroke-width="3"/></svg>';
+  const fantas='<svg viewBox="0 0 60 60"><path d="M14 52 V22 Q14 8 30 8 Q46 8 46 22 V52 L40 46 L34 52 L28 46 L22 52 L16 46Z" fill="#f4f4f4" stroke="#171717" stroke-width="3"/><circle cx="24" cy="25" r="3" fill="#171717"/><circle cx="36" cy="25" r="3" fill="#171717"/><path d="M23 36 Q30 42 37 36" fill="none" stroke="#171717" stroke-width="3"/></svg>';
+  const iconos=[murc,cal,ara,tel,fantas];
   const posiciones=[
-    [[2,1],[91,2]],[[2,85],[91,84]],[[2,2],[91,84]],[[91,2],[2,85]]
-  ][index%4];
-  const a=iconos[index%iconos.length];
-  const b=iconos[(index+1)%iconos.length];
-  return '<div class="seasonal-decoration"><span style="left:'+posiciones[0][0]+'%;top:'+posiciones[0][1]+'%">'+a+'</span><span style="left:'+posiciones[1][0]+'%;top:'+posiciones[1][1]+'%">'+b+'</span></div>';
+    [[1,1],[87,1],[45,82]],
+    [[1,1],[87,82],[45,1]],
+    [[87,1],[1,82],[45,82]],
+    [[1,1],[87,82],[45,1]],
+    [[87,1],[1,1],[45,82]]
+  ][index%5];
+  return '<div class="seasonal-decoration">'+
+    '<span style="left:'+posiciones[0][0]+'%;top:'+posiciones[0][1]+'%">'+iconos[index%iconos.length]+'</span>'+
+    '<span style="left:'+posiciones[1][0]+'%;top:'+posiciones[1][1]+'%">'+iconos[(index+1)%iconos.length]+'</span>'+
+    '<span style="left:'+posiciones[2][0]+'%;top:'+posiciones[2][1]+'%">'+iconos[(index+2)%iconos.length]+'</span>'+
+  '</div>';
 }
 
 function setStatus(texto){
