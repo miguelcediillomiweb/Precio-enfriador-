@@ -154,6 +154,9 @@ input[type=file]{
   gap:6px;
 }
 
+
+.seasonal-decoration{position:absolute;inset:0;pointer-events:none;z-index:20;overflow:hidden;font-family:Arial,sans-serif}
+.seasonal-decoration span{position:absolute;font-size:9pt;line-height:1;opacity:.78;filter:saturate(.9)}
 .label{
   width:70mm;
   height:50mm;
@@ -473,6 +476,14 @@ function imprimirTermica(){
   setTimeout(() => document.body.classList.remove("thermal-print"), 1000);
 }
 
+function decoracionTemporada(index){
+  const mes=new Date().getMonth();
+  const sets={0:["❄️","✨","⭐"],1:["❤️","💗","✨"],2:["🌸","🌿","🌼"],3:["🌷","🌿","✨"],4:["☀️","✨","🌼"],5:["☀️","💧","🌊"],6:["☀️","🌴","🌊"],7:["🌻","☀️","🍃"],8:["🎃","🦇","👻","🕸️"],9:["🎃","🦇","👻","🕷️"],10:["🍂","✨","🍁"],11:["🎄","✨","🎁","⭐"]};
+  const s=sets[mes]||sets[10];
+  const pos=[[[3,3],[92,5]],[[4,88],[93,89]],[[2,5],[95,86]],[[94,4],[4,91]]][index%4];
+  return '<div class="seasonal-decoration"><span style="left:'+pos[0][0]+'%;top:'+pos[0][1]+'%">'+s[index%s.length]+'</span><span style="left:'+pos[1][0]+'%;top:'+pos[1][1]+'%">'+s[(index+1)%s.length]+'</span></div>';
+}
+
 function setStatus(texto){
   document.getElementById("status").textContent = texto;
 }
@@ -575,6 +586,7 @@ function renderizar(productos){
 
     const c1 = colorSeguro(p.ColorInicio,"#ffffff");
     const c2 = colorSeguro(p.ColorFin,"#dbeafe");
+    const decoracion = decoracionTemporada(index);
 
     const logos = [];
     if(p.Logo1) logos.push(p.Logo1);
