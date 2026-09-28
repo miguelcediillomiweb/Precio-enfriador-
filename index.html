@@ -179,8 +179,14 @@ input[type=file]{
   display:block;
   object-fit:contain;
   background:transparent;
-  mix-blend-mode:multiply;
+  opacity:1;
+  mix-blend-mode:normal;
 }
+.seasonal-decoration span:nth-child(1){left:1%!important;top:1%!important;}
+.seasonal-decoration span:nth-child(2){left:84%!important;top:1%!important;}
+.seasonal-decoration span:nth-child(3){left:1%!important;top:38%!important;}
+.seasonal-decoration span:nth-child(4){left:84%!important;top:38%!important;}
+.seasonal-decoration span:nth-child(5){left:45%!important;top:82%!important;}
 .label{
   width:70mm;
   height:50mm;
@@ -512,10 +518,10 @@ function decoracionTemporada(index){
   ];
 
   const posiciones=[
-    [[1,1],[86,1],[1,40],[86,40],[45,82]],
-    [[86,1],[1,1],[86,40],[1,40],[45,82]],
-    [[1,1],[45,1],[86,1],[1,40],[86,40]],
-    [[86,1],[45,1],[1,1],[86,40],[1,40]]
+    [[1,1],[84,1],[1,38],[84,38],[45,82]],
+    [[84,1],[1,1],[84,38],[1,38],[45,82]],
+    [[1,1],[45,1],[84,1],[1,38],[84,38]],
+    [[84,1],[45,1],[1,1],[84,38],[1,38]]
   ][index%4];
 
   let html='<div class="seasonal-decoration">';
