@@ -477,11 +477,19 @@ function imprimirTermica(){
 }
 
 function decoracionTemporada(index){
-  const mes=9; // Octubre: temática Halloween
-  const sets={0:["❄️","✨","⭐"],1:["❤️","💗","✨"],2:["🌸","🌿","🌼"],3:["🌷","🌿","✨"],4:["☀️","✨","🌼"],5:["☀️","💧","🌊"],6:["☀️","🌴","🌊"],7:["🌻","☀️","🍃"],8:["🎃","🦇","👻","🕸️"],9:["🎃","🦇","👻","🕷️"],10:["🍂","✨","🍁"],11:["🎄","✨","🎁","⭐"]};
-  const s=sets[mes]||sets[10];
-  const pos=[[[3,3],[92,5]],[[4,88],[93,89]],[[2,5],[95,86]],[[94,4],[4,91]]][index%4];
-  return '<div class="seasonal-decoration"><span style="left:'+pos[0][0]+'%;top:'+pos[0][1]+'%">'+s[index%s.length]+'</span><span style="left:'+pos[1][0]+'%;top:'+pos[1][1]+'%">'+s[(index+1)%s.length]+'</span></div>';
+  // Octubre: Halloween. Se usan SVG para que se vean igual en Android, PC e impresión.
+  const iconos=[
+    '<svg viewBox="0 0 60 60"><path d="M10 35 C12 18 25 13 30 23 C35 13 48 18 50 35 C44 30 39 30 35 34 L30 41 L25 34 C21 30 16 30 10 35Z" fill="#111"/><circle cx="23" cy="27" r="2.5" fill="#ff8a00"/><circle cx="37" cy="27" r="2.5" fill="#ff8a00"/></svg>',
+    '<svg viewBox="0 0 60 60"><path d="M30 9 C43 9 51 20 48 34 C46 46 38 52 30 52 C22 52 14 46 12 34 C9 20 17 9 30 9Z" fill="#ff8a00" stroke="#111" stroke-width="3"/><path d="M25 9 L24 3 M35 9 L36 3 M21 25 L25 28 M39 25 L35 28 M24 38 Q30 43 36 38" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/></svg>',
+    '<svg viewBox="0 0 60 60"><path d="M30 7 L34 19 L47 17 L39 27 L49 35 L36 34 L30 48 L24 34 L11 35 L21 27 L13 17 L26 19Z" fill="none" stroke="#111" stroke-width="3" stroke-linejoin="round"/></svg>',
+    '<svg viewBox="0 0 60 60"><circle cx="30" cy="20" r="7" fill="#111"/><circle cx="30" cy="34" r="10" fill="#111"/><path d="M24 16 L14 10 M36 16 L46 10 M21 23 L10 21 M39 23 L50 21 M21 37 L10 42 M39 37 L50 42 M25 43 L18 52 M35 43 L42 52" stroke="#111" stroke-width="3" stroke-linecap="round"/></svg>'
+  ];
+  const posiciones=[
+    [[2,1],[91,2]],[[2,85],[91,84]],[[2,2],[91,84]],[[91,2],[2,85]]
+  ][index%4];
+  const a=iconos[index%iconos.length];
+  const b=iconos[(index+1)%iconos.length];
+  return '<div class="seasonal-decoration"><span style="left:'+posiciones[0][0]+'%;top:'+posiciones[0][1]+'%">'+a+'</span><span style="left:'+posiciones[1][0]+'%;top:'+posiciones[1][1]+'%">'+b+'</span></div>';
 }
 
 function setStatus(texto){
@@ -614,6 +622,7 @@ function renderizar(productos){
           style="--c1:${escaparHTML(c1)};--c2:${escaparHTML(c2)}"
           data-index="${index}"
         >
+          ${decoracion}
           <div class="brand-band">${escaparHTML(p.Marca || "PRODUCTO")}</div>
           <div class="route-area">${rutaHTML}</div>
 
