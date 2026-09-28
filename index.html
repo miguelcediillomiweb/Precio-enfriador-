@@ -155,38 +155,6 @@ input[type=file]{
 }
 
 
-.seasonal-decoration{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  pointer-events:none;
-  z-index:999;
-  overflow:hidden;
-}
-.seasonal-decoration span{
-  position:absolute;
-  width:10mm;
-  height:10mm;
-  display:block;
-  line-height:0;
-  opacity:1;
-  z-index:1000;
-}
-.seasonal-decoration img{
-  width:100%;
-  height:100%;
-  display:block;
-  object-fit:contain;
-  background:transparent;
-  opacity:1;
-  mix-blend-mode:normal;
-}
-.seasonal-decoration span:nth-child(1){left:1%!important;top:1%!important;}
-.seasonal-decoration span:nth-child(2){left:84%!important;top:1%!important;}
-.seasonal-decoration span:nth-child(3){left:1%!important;top:38%!important;}
-.seasonal-decoration span:nth-child(4){left:84%!important;top:38%!important;}
-.seasonal-decoration span:nth-child(5){left:45%!important;top:82%!important;}
 .label{
   width:70mm;
   height:50mm;
@@ -507,29 +475,7 @@ function imprimirTermica(){
 }
 
 function decoracionTemporada(index){
-  // Halloween: imágenes reales proporcionadas por el usuario.
-  // Se distribuyen alrededor de la etiqueta sin invadir la zona central.
-  const imagenes=[
-    "https://i.ibb.co/tPbhQwkj/images-2026-09-28-T092108-707.jpg",
-    "https://i.ibb.co/tMdJ1z9g/images-2026-09-28-T092146-860.jpg",
-    "https://i.ibb.co/HpqsxQ2W/images-2026-09-28-T092201-103.jpg",
-    "https://i.ibb.co/dnvwwYY/images-13.png",
-    "https://i.ibb.co/zT0DLbbC/images-14.png"
-  ];
-
-  const posiciones=[
-    [[1,1],[84,1],[1,38],[84,38],[45,82]],
-    [[84,1],[1,1],[84,38],[1,38],[45,82]],
-    [[1,1],[45,1],[84,1],[1,38],[84,38]],
-    [[84,1],[45,1],[1,1],[84,38],[1,38]]
-  ][index%4];
-
-  let html='<div class="seasonal-decoration">';
-  imagenes.forEach((url,i)=>{
-    html+='<span style="left:'+posiciones[i][0]+'%;top:'+posiciones[i][1]+'%"><img src="'+url+'" alt="" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></span>';
-  });
-  html+='</div>';
-  return html;
+  return "";
 }
 
 function escaparHTML(valor){
