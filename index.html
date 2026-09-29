@@ -351,7 +351,87 @@ input[type=file]{
     print-color-adjust:exact;
   }
 }
-@media print and (min-width:700px){\n  #labels{grid-template-columns:repeat(2,70mm);gap:4mm 8mm;justify-content:center;}\n}\n\n@media print{\n  body.thermal-print #labels{display:flex;flex-direction:column;align-items:flex-start;gap:0;margin:0;padding:0;}\n  body.thermal-print .label-wrap{width:50mm;margin:0;padding:0;break-inside:avoid;page-break-inside:avoid;}\n  body.thermal-print .label{width:50mm!important;min-width:50mm!important;max-width:50mm!important;height:50mm!important;min-height:50mm!important;max-height:50mm!important;margin:0;border:1px solid #111;box-shadow:none;}\n  body.thermal-print .route-area{height:6mm;min-height:6mm;padding:0 1.5mm;}\n  body.thermal-print .route-logo{max-width:25mm;max-height:5mm;}\n  body.thermal-print .brand-band{height:7mm;min-height:7mm;font-size:9pt;padding:0 1mm;}\n  body.thermal-print .logo-area{width:45%;min-width:45%;}\n  body.thermal-print .logo-area.one img{max-width:21mm;max-height:23mm;}\n  body.thermal-print .logo-area.two img{max-width:19mm;max-height:15mm;}\n  body.thermal-print .price-main{font-size:42pt;letter-spacing:-2px;}\n  body.thermal-print .size-band{height:7mm;min-height:7mm;font-size:8.5pt;padding:0 1mm;}\n  body.thermal-print .seasonal-decoration span{width:5mm;height:5mm;}\n}\n@media print{\n  @page{size:letter;margin:5mm;}\n  body.thermal-print{width:50mm!important;margin:0!important;padding:0!important;}\n  body.thermal-print #labels{width:50mm!important;}\n  body.thermal-print .app{width:50mm!important;margin:0!important;}\n}\n@media print and (min-width:700px){\n  body.thermal-print{width:50mm!important;}\n  body.thermal-print #labels{grid-template-columns:50mm;}\n}\n</style>
+@media print and (min-width:700px){\n  #labels{grid-template-columns:repeat(2,70mm);gap:4mm 8mm;justify-content:center;}\n}\n\n@media print{\n  body.thermal-print #labels{display:flex;flex-direction:column;align-items:flex-start;gap:0;margin:0;padding:0;}\n  body.thermal-print .label-wrap{width:50mm;margin:0;padding:0;break-inside:avoid;page-break-inside:avoid;}\n  body.thermal-print .label{width:50mm!important;min-width:50mm!important;max-width:50mm!important;height:50mm!important;min-height:50mm!important;max-height:50mm!important;margin:0;border:1px solid #111;box-shadow:none;}\n  body.thermal-print .route-area{height:6mm;min-height:6mm;padding:0 1.5mm;}\n  body.thermal-print .route-logo{max-width:25mm;max-height:5mm;}\n  body.thermal-print .brand-band{height:7mm;min-height:7mm;font-size:9pt;padding:0 1mm;}\n  body.thermal-print .logo-area{width:45%;min-width:45%;}\n  body.thermal-print .logo-area.one img{max-width:21mm;max-height:23mm;}\n  body.thermal-print .logo-area.two img{max-width:19mm;max-height:15mm;}\n  body.thermal-print .price-main{font-size:42pt;letter-spacing:-2px;}\n  body.thermal-print .size-band{height:7mm;min-height:7mm;font-size:8.5pt;padding:0 1mm;}\n  body.thermal-print .seasonal-decoration span{width:5mm;height:5mm;}\n}\n@media print{\n  @page{size:letter;margin:5mm;}\n  body.thermal-print{width:50mm!important;margin:0!important;padding:0!important;}\n  body.thermal-print #labels{width:50mm!important;}\n  body.thermal-print .app{width:50mm!important;margin:0!important;}\n}\n@media print and (min-width:700px){
+  #labels{grid-template-columns:repeat(2,70mm);gap:4mm 8mm;justify-content:center;}
+}
+@media print{
+  /* TÉRMICA: rollo de 50 mm de ancho. El largo de cada impresión queda automático. */
+  body.thermal-print{
+    width:50mm!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+  }
+  body.thermal-print header,
+  body.thermal-print .toolbar,
+  body.thermal-print .instructions,
+  body.thermal-print .label-actions,
+  body.thermal-print .status{
+    display:none!important;
+  }
+  body.thermal-print .app{
+    width:50mm!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  body.thermal-print #labels{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    width:50mm!important;
+    margin:0!important;
+    padding:0!important;
+    gap:0!important;
+  }
+  body.thermal-print .label-wrap{
+    width:50mm!important;
+    min-width:50mm!important;
+    max-width:50mm!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+  body.thermal-print .label{
+    width:50mm!important;
+    min-width:50mm!important;
+    max-width:50mm!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    aspect-ratio:7 / 5!important;
+    margin:0!important;
+    border:1px solid #111!important;
+    box-shadow:none!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  body.thermal-print .route-area{height:6mm;min-height:6mm;padding:0 1.5mm;}
+  body.thermal-print .route-logo{max-width:25mm;max-height:5mm;}
+  body.thermal-print .brand-band{height:7mm;min-height:7mm;font-size:9pt;padding:0 1mm;}
+  body.thermal-print .logo-area{width:45%;min-width:45%;}
+  body.thermal-print .logo-area.one img{max-width:21mm;max-height:23mm;}
+  body.thermal-print .logo-area.two img{max-width:19mm;max-height:15mm;}
+  body.thermal-print .price-main{font-size:42pt;letter-spacing:-2px;}
+  body.thermal-print .size-band{height:7mm;min-height:7mm;font-size:8.5pt;padding:0 1mm;}
+}
+@media print{
+  /* HOJA CARTA: 70 × 50 mm, dos columnas y tantas filas como quepan. */
+  @page{size:letter;margin:5mm;}
+  body:not(.thermal-print) #labels{
+    display:grid!important;
+    grid-template-columns:repeat(2,70mm)!important;
+    gap:4mm 8mm!important;
+    justify-content:center!important;
+    align-items:start!important;
+  }
+}
+@page{
+  size:50mm auto;
+  margin:0;
+}
+</style>
 </head>
 
 <body>
@@ -470,10 +550,10 @@ function imprimirCarta(){
 
 function imprimirTermica(){
   document.body.classList.add("thermal-print");
-  // La etiqueta física de la térmica es 50 × 70 mm:
-  // 50 mm de ancho del rollo y 70 mm de avance.
-  setTimeout(() => window.print(), 50);
-  setTimeout(() => document.body.classList.remove("thermal-print"), 1500);
+  // La térmica queda fija a 50 mm de ancho.
+  // El largo lo determina automáticamente el contenido de la etiqueta.
+  setTimeout(() => window.print(), 100);
+  setTimeout(() => document.body.classList.remove("thermal-print"), 2000);
 }
 
 function decoracionTemporada(index){
