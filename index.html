@@ -499,7 +499,7 @@ input[type=file]{
   <button class="printershare" onclick="enviarPrinterShare()">📲 PrinterShare · Zebra</button>
   <button class="secondary" onclick="cargarEjemplos()">🧪 Ver ejemplos</button>
 
-  <div id="status" class="status">Preparando etiquetas…</div>
+  <div id="status" class="status">✓ Etiquetas de ejemplo listas.</div>
 </section>
 
 <section class="instructions">
@@ -510,7 +510,26 @@ input[type=file]{
   Los enlaces de imágenes pueden ser URLs directas de ImgBB.
 </section>
 
-<main id="labels"></main>
+<main id="labels">
+  <div class="label-wrap">
+    <article class="label" style="--c1:#f7f7f7;--c2:#ef4444">
+      <div class="brand-band">PEÑAFIEL SANGRÍA</div>
+      <div class="route-area"><div class="route-fallback">RUTA 1371</div></div>
+      <div class="main-area">
+        <div class="logo-area one">
+          <div class="no-logo">LOGO DEL PRODUCTO</div>
+        </div>
+        <div class="price-area">
+          <div class="price-main">$18</div>
+        </div>
+      </div>
+      <div class="size-band">600 ML</div>
+    </article>
+    <div class="label-actions">
+      <button onclick="cargarEjemplos()">🧪 Ver ejemplos</button>
+    </div>
+  </div>
+</main>
 
 </div>
 
