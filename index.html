@@ -453,7 +453,8 @@ input[type=file]{
   <input id="excelInput" type="file" accept=".xlsx,.xls,.csv">
 
   <button class="green" onclick="imprimirCarta()">🖨️ Imprimir en hoja carta</button>
-  <button class="thermal" onclick="imprimirTermica()">🧾 Imprimir en térmica</button>
+  <button class="thermal" onclick="imprimirTermica()">🧾 Imprimir térmica</button>
+  <button class="printershare" onclick="enviarPrinterShare()">📲 PrinterShare</button>
   <button class="secondary" onclick="cargarEjemplos()">🧪 Ver ejemplos</button>
 
   <div id="status" class="status">Preparando etiquetas…</div>
@@ -541,6 +542,9 @@ document.getElementById("excelInput").addEventListener("change", manejarExcel);
 
 window.addEventListener("DOMContentLoaded", () => {
   cargarGoogleSheets();
+  if(new URLSearchParams(window.location.search).get("printershare") === "thermal"){
+    document.body.classList.add("thermal-print");
+  }
 });
 
 function imprimirCarta(){
@@ -550,10 +554,34 @@ function imprimirCarta(){
 
 function imprimirTermica(){
   document.body.classList.add("thermal-print");
-  // La térmica queda fija a 50 mm de ancho.
-  // El largo lo determina automáticamente el contenido de la etiqueta.
   setTimeout(() => window.print(), 100);
   setTimeout(() => document.body.classList.remove("thermal-print"), 2000);
+}
+
+async function enviarPrinterShare(){
+  const url = new URL(window.location.href);
+  url.searchParams.set("printershare","thermal");
+
+  const datos = {
+    title: "Etiquetas térmicas - Precio Enfriador",
+    text: "Etiquetas de precio en formato térmico de 50 mm de ancho.",
+    url: url.toString()
+  };
+
+  try{
+    if(navigator.share){
+      await navigator.share(datos);
+      setStatus("✓ Selecciona PrinterShare en la ventana de compartir.");
+    }else{
+      window.open(url.toString(),"_blank");
+      setStatus("Abre la página y usa Compartir → PrinterShare.");
+    }
+  }catch(error){
+    if(error?.name !== "AbortError"){
+      window.open(url.toString(),"_blank");
+      setStatus("Abre la página y usa Compartir → PrinterShare.");
+    }
+  }
 }
 
 function decoracionTemporada(index){
