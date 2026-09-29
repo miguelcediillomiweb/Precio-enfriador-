@@ -470,8 +470,10 @@ function imprimirCarta(){
 
 function imprimirTermica(){
   document.body.classList.add("thermal-print");
-  window.print();
-  setTimeout(() => document.body.classList.remove("thermal-print"), 1000);
+  // La etiqueta física de la térmica es 50 × 70 mm:
+  // 50 mm de ancho del rollo y 70 mm de avance.
+  setTimeout(() => window.print(), 50);
+  setTimeout(() => document.body.classList.remove("thermal-print"), 1500);
 }
 
 function decoracionTemporada(index){
