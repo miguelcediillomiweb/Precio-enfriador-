@@ -584,7 +584,11 @@ const ejemplos = [
 document.getElementById("excelInput").addEventListener("change", manejarExcel);
 
 window.addEventListener("DOMContentLoaded", () => {
-  cargarGoogleSheets();
+  // La página siempre inicia mostrando las etiquetas de ejemplo.
+  // Google Sheets se consulta únicamente al pulsar "Actualizar desde Google Sheets",
+  // para que una falla de conexión nunca bloquee ni deje vacía la página.
+  cargarEjemplos();
+
   if(new URLSearchParams(window.location.search).get("printershare") === "thermal"){
     document.body.classList.add("thermal-print");
   }
