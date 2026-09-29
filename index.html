@@ -519,7 +519,8 @@ const GOOGLE_SHEET_ID = "1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs";
 // La hoja se lee desde la pestaña principal del archivo.
 // No dependemos del nombre de la pestaña para evitar errores si se renombra.
 const GOOGLE_CSV_URLS = [
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTu9tixL9C-0pepp1wl6cR7YXfqHoJMUbjAqEyNFMGigwa31KRUPAWPH8cuj8fXQzCK4tI4dqiuKSx6/pub?output=csv"
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTu9tixL9C-0pepp1wl6cR7YXfqHoJMUbjAqEyNFMGigwa31KRUPAWPH8cuj8fXQzCK4tI4dqiuKSx6/pub?output=csv",
+  "https://docs.google.com/spreadsheets/d/1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs/gviz/tq?tqx=out:csv"
 ];
 
 const ejemplos = [
@@ -860,7 +861,18 @@ async function cargarGoogleSheets(){
 
     for(const url of GOOGLE_CSV_URLS){
       try{
-        const respuesta = await fetch(url,{cache:"no-store"});
+        const controlador = new AbortController();
+        const temporizador = setTimeout(() => controlador.abort(),8000);
+
+        let respuesta;
+        try{
+          respuesta = await fetch(url,{
+            cache:"no-store",
+            signal:controlador.signal
+          });
+        }finally{
+          clearTimeout(temporizador);
+        }
         if(!respuesta.ok){
           throw new Error("HTTP " + respuesta.status);
         }
@@ -888,7 +900,7 @@ async function cargarGoogleSheets(){
   }catch(error){
     console.error("Google Sheets:",error);
     renderizar(ejemplos);
-    setStatus("⚠️ No se pudo leer Google Sheets. Verifica que esté en «Cualquier persona con el enlace → Lector».");
+    setStatus("⚠️ Google Sheets no respondió. Se muestran las etiquetas de ejemplo; puedes intentar «Actualizar desde Google Sheets» nuevamente.");
   }
 }
 
