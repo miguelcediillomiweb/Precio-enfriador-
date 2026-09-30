@@ -854,43 +854,23 @@ function imprimirUna(index){
 async function cargarGoogleSheets(){
   const contenedor = document.getElementById("labels");
   contenedor.innerHTML = '<div class="empty">Cargando etiquetas desde Google Sheets…</div>';
-  setStatus("Cargando etiquetas desde Google Sheets…");
+  setStatus("Cargando etiquetas reales desde Google Sheets…");
 
   try{
-    let filas = [];
-    let ultimoError = null;
+    const filas = await cargarGoogleSheetsJSONP();
 
-    for(const url of GOOGLE_CSV_URLS){
-      try{
-        const controlador = new AbortController();
-        const temporizador = setTimeout(() => controlador.abort(),8000);
-        let respuesta;
-        try{
-          respuesta = await fetch(url,{method:"GET",cache:"no-store",signal:controlador.signal});
-        }finally{
-          clearTimeout(temporizador);
-        }
-        if(!respuesta.ok) throw new Error("HTTP " + respuesta.status);
-        const texto = await respuesta.text();
-        const candidatas = csvAObjetos(texto);
-        if(candidatas.length){ filas = candidatas; break; }
-        throw new Error("Google Sheets devolvió un archivo sin productos.");
-      }catch(error){
-        ultimoError = error;
-      }
+    if(!filas.length){
+      throw new Error("La hoja respondió, pero no contiene productos.");
     }
 
-    if(!filas.length) filas = await cargarGoogleSheetsJSONP();
-    if(!filas.length) throw ultimoError || new Error("La hoja no contiene productos.");
-
     renderizar(filas);
-    setStatus("✓ " + filas.length + " etiquetas cargadas desde Google Sheets.");
+    setStatus("✓ " + filas.length + " etiquetas reales cargadas desde Google Sheets.");
   }catch(error){
-    console.error("Google Sheets:",error);
+    console.error("Google Sheets:", error);
     contenedor.innerHTML =
-      '<div class="empty"><strong>No se pudieron cargar las etiquetas de Google Sheets.</strong><br>' +
-      'Pulsa «Actualizar desde Google Sheets» para volver a intentarlo.</div>';
-    setStatus("❌ No fue posible leer Google Sheets: " + (error.message || "error de conexión"));
+      '<div class="empty"><strong>No se pudieron cargar las etiquetas reales de Google Sheets.</strong><br>' +
+      'Verifica que la hoja esté publicada y vuelve a pulsar «Actualizar desde Google Sheets».</div>';
+    setStatus("❌ Google Sheets: " + (error.message || "no respondió"));
   }
 }
 
@@ -911,16 +891,22 @@ function cargarGoogleSheetsJSONP(){
       if(terminado) return;
       limpiar();
       reject(new Error("Google Sheets no respondió a tiempo."));
-    },10000);
+    },12000);
 
     window[callbackName] = data => {
       try{
+        if(data?.status === "error"){
+          throw new Error(data.errors?.[0]?.detailed_message || data.errors?.[0]?.message || "Google Sheets devolvió un error.");
+        }
+
         const filas = gvizAObjetos(data);
         limpiar();
+
         if(!filas.length){
           reject(new Error("Google Sheets respondió sin filas de productos."));
           return;
         }
+
         resolve(filas);
       }catch(error){
         limpiar();
@@ -933,11 +919,13 @@ function cargarGoogleSheetsJSONP(){
       reject(new Error("No se pudo conectar con Google Sheets."));
     };
 
+    // Google Visualization entrega JSONP cuando se usa inyección de <script>.
+    // responseHandler debe ir dentro de tqx; no usamos fetch/CORS ni out:csv aquí.
     script.src =
       "https://docs.google.com/spreadsheets/d/" +
       encodeURIComponent(GOOGLE_SHEET_ID) +
       "/gviz/tq?tqx=" +
-      encodeURIComponent("out:json;responseHandler:" + callbackName);
+      encodeURIComponent("responseHandler:" + callbackName);
 
     document.head.appendChild(script);
   });
