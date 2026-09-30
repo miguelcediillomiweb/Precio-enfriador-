@@ -501,7 +501,7 @@ input[type=file]{
   <button class="printershare" onclick="enviarPrinterShare()">📲 PrinterShare · Zebra</button>
   <button class="secondary" onclick="cargarEjemplos()">🧪 Ver ejemplos</button>
 
-  <div id="status" class="status">Preparando etiquetas…</div>
+  <div id="status" class="status">Cargando etiquetas desde Google Sheets…</div>
 </section>
 
 <section class="instructions">
@@ -938,7 +938,7 @@ function cargarGoogleSheetsJSONP(){
       "https://docs.google.com/spreadsheets/d/" +
       encodeURIComponent(GOOGLE_SHEET_ID) +
       "/gviz/tq?tqx=" +
-      encodeURIComponent("out:json;responseHandler:" + callbackName);
+      encodeURIComponent("responseHandler:" + callbackName);
 
     document.head.appendChild(script);
   });
@@ -1071,7 +1071,7 @@ async function manejarExcel(evento){
 
 function cargarEjemplos(){
   renderizar(ejemplos);
-  setStatus("Mostrando " + ejemplos.length + " ejemplos.");
+  setStatus("Mostrando ejemplos de prueba. Para usar tus etiquetas reales, pulsa «Actualizar desde Google Sheets».");
 }
 </script>
 </body>
