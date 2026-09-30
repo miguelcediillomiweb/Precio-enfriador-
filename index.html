@@ -854,10 +854,27 @@ function imprimirUna(index){
 
 async function cargarGoogleSheets(){
   const contenedor = document.getElementById("labels");
-  contenedor.innerHTML = '<div class="empty">Cargando etiquetas desde Google Sheets…</div>';
-  setStatus("Cargando etiquetas desde Google Sheets…");
+  contenedor.innerHTML = '<div class="empty">Cargando etiquetas…</div>';
+  setStatus("Cargando etiquetas…");
 
   try{
+    // Primero usamos el archivo local generado por GitHub Actions.
+    // Esto evita por completo el bloqueo CORS del navegador contra Google.
+    try{
+      const local = await fetch("data.json?ts=" + Date.now(),{cache:"no-store"});
+      if(local.ok){
+        const datos = await local.json();
+        if(Array.isArray(datos) && datos.length){
+          renderizar(datos);
+          setStatus("✓ " + datos.length + " etiquetas cargadas.");
+          return;
+        }
+      }
+    }catch(error){
+      console.warn("No se pudo leer data.json:",error);
+    }
+
+    // Respaldo para probar directamente las publicaciones de Google Sheets.
     let filas = [];
     let ultimoError = null;
 
@@ -889,9 +906,9 @@ async function cargarGoogleSheets(){
   }catch(error){
     console.error("Google Sheets:",error);
     contenedor.innerHTML =
-      '<div class="empty"><strong>No se pudieron cargar las etiquetas de Google Sheets.</strong><br>' +
-      'Pulsa «Actualizar desde Google Sheets» para volver a intentarlo.</div>';
-    setStatus("❌ No fue posible leer Google Sheets: " + (error.message || "error de conexión"));
+      '<div class="empty"><strong>No se pudieron cargar las etiquetas.</strong><br>' +
+      'El sincronizador de Google Sheets no ha terminado todavía. Pulsa «Actualizar desde Google Sheets» en unos segundos.</div>';
+    setStatus("❌ No fue posible cargar las etiquetas: " + (error.message || "error de conexión"));
   }
 }
 
