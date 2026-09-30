@@ -82,7 +82,9 @@ header{
 }
 
 button,
-.thermal{background:#2563eb}\n\n.file-label{
+.thermal{background:#2563eb}
+
+.file-label{
   border:0;
   border-radius:10px;
   padding:11px 15px;
@@ -519,7 +521,8 @@ const GOOGLE_SHEET_ID = "1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs";
 // La hoja se lee desde la pestaña principal del archivo.
 // No dependemos del nombre de la pestaña para evitar errores si se renombra.
 const GOOGLE_CSV_URLS = [
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTu9tixL9C-0pepp1wl6cR7YXfqHoJMUbjAqEyNFMGigwa31KRUPAWPH8cuj8fXQzCK4tI4dqiuKSx6/pub?output=csv"
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTu9tixL9C-0pepp1wl6cR7YXfqHoJMUbjAqEyNFMGigwa31KRUPAWPH8cuj8fXQzCK4tI4dqiuKSx6/pub?output=csv",
+  "https://docs.google.com/spreadsheets/d/1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs/gviz/tq?tqx=out%3Acsv"
 ];
 
 const ejemplos = [
@@ -935,7 +938,7 @@ function cargarGoogleSheetsJSONP(){
       "https://docs.google.com/spreadsheets/d/" +
       encodeURIComponent(GOOGLE_SHEET_ID) +
       "/gviz/tq?tqx=" +
-      encodeURIComponent("responseHandler:" + callbackName);
+      encodeURIComponent("out:json;responseHandler:" + callbackName);
 
     document.head.appendChild(script);
   });
