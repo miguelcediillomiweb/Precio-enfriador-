@@ -937,7 +937,7 @@ function cargarGoogleSheetsJSONP(){
       "https://docs.google.com/spreadsheets/d/" +
       encodeURIComponent(GOOGLE_SHEET_ID) +
       "/gviz/tq?tqx=" +
-      encodeURIComponent("responseHandler:" + callbackName);
+      encodeURIComponent("out:json;responseHandler:" + callbackName);
 
     document.head.appendChild(script);
   });
