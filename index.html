@@ -82,9 +82,7 @@ header{
 }
 
 button,
-.thermal{background:#2563eb}
-
-.file-label{
+.thermal{background:#2563eb}\n\n.file-label{
   border:0;
   border-radius:10px;
   padding:11px 15px;
@@ -501,7 +499,7 @@ input[type=file]{
   <button class="printershare" onclick="enviarPrinterShare()">📲 PrinterShare · Zebra</button>
   <button class="secondary" onclick="cargarEjemplos()">🧪 Ver ejemplos</button>
 
-  <div id="status" class="status">Cargando etiquetas desde Google Sheets…</div>
+  <div id="status" class="status">Preparando etiquetas…</div>
 </section>
 
 <section class="instructions">
@@ -521,8 +519,7 @@ const GOOGLE_SHEET_ID = "1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs";
 // La hoja se lee desde la pestaña principal del archivo.
 // No dependemos del nombre de la pestaña para evitar errores si se renombra.
 const GOOGLE_CSV_URLS = [
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTu9tixL9C-0pepp1wl6cR7YXfqHoJMUbjAqEyNFMGigwa31KRUPAWPH8cuj8fXQzCK4tI4dqiuKSx6/pub?output=csv",
-  "https://docs.google.com/spreadsheets/d/1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs/gviz/tq?tqx=out:csv"
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTu9tixL9C-0pepp1wl6cR7YXfqHoJMUbjAqEyNFMGigwa31KRUPAWPH8cuj8fXQzCK4tI4dqiuKSx6/pub?output=csv"
 ];
 
 const ejemplos = [
@@ -587,7 +584,6 @@ document.getElementById("excelInput").addEventListener("change", manejarExcel);
 
 window.addEventListener("DOMContentLoaded", () => {
   cargarGoogleSheets();
-
   if(new URLSearchParams(window.location.search).get("printershare") === "thermal"){
     document.body.classList.add("thermal-print");
   }
@@ -854,63 +850,46 @@ function imprimirUna(index){
 }
 
 async function cargarGoogleSheets(){
-  const contenedor = document.getElementById("labels");
-  contenedor.innerHTML = '<div class="empty">Cargando etiquetas reales desde Google Sheets…</div>';
-  setStatus("Cargando etiquetas reales desde Google Sheets…");
+  // Mostramos ejemplos inmediatamente para que la página nunca quede vacía.
+  renderizar(ejemplos);
+  setStatus("Cargando productos desde Google Sheets…");
 
   try{
-    // Este es el enlace publicado que proporcionaste. Se usa directamente como CSV.
-    const respuesta = await fetch(GOOGLE_CSV_URLS[0],{
-      method:"GET",
-      cache:"no-store"
-    });
+    let filas = [];
+    let ultimoError = null;
 
-    if(!respuesta.ok){
-      throw new Error("Google Sheets respondió HTTP " + respuesta.status);
+    for(const url of GOOGLE_CSV_URLS){
+      try{
+        const respuesta = await fetch(url,{cache:"no-store"});
+        if(!respuesta.ok){
+          throw new Error("HTTP " + respuesta.status);
+        }
+
+        const texto = await respuesta.text();
+        const candidatas = csvAObjetos(texto);
+
+        if(candidatas.length){
+          filas = candidatas;
+          break;
+        }
+
+        throw new Error("La respuesta no contiene filas de productos.");
+      }catch(error){
+        ultimoError = error;
+      }
     }
-
-    const texto = await respuesta.text();
-
-    if(!texto || !texto.trim()){
-      throw new Error("Google Sheets devolvió una respuesta vacía.");
-    }
-
-    const filas = csvAObjetos(texto);
 
     if(!filas.length){
-      throw new Error("No se encontraron productos en el CSV publicado.");
+      throw ultimoError || new Error("No se pudo leer la hoja.");
     }
 
     renderizar(filas);
-    setStatus("✓ " + filas.length + " etiquetas reales cargadas desde Google Sheets.");
+    setStatus("✓ " + filas.length + " etiquetas cargadas desde Google Sheets.");
   }catch(error){
-    console.error("Google Sheets:", error);
-
-    contenedor.innerHTML =
-      '<div class="empty"><strong>No se pudieron cargar las etiquetas reales de Google Sheets.</strong><br>' +
-      'Pulsa «Actualizar desde Google Sheets» para volver a intentarlo.</div>';
-
-    setStatus("❌ Google Sheets: " + (error.message || "no respondió"));
+    console.error("Google Sheets:",error);
+    renderizar(ejemplos);
+    setStatus("⚠️ No se pudo leer Google Sheets. Verifica que esté en «Cualquier persona con el enlace → Lector».");
   }
-}
-
-function gvizAObjetos(data){
-  const tabla = data?.table;
-  if(!tabla || !Array.isArray(tabla.cols) || !Array.isArray(tabla.rows)) return [];
-
-  const encabezados = tabla.cols.map((col,index) =>
-    String(col?.label || col?.id || "col" + index).trim()
-  );
-
-  return tabla.rows.map(row => {
-    const obj = {};
-    encabezados.forEach((encabezado,index) => {
-      obj[encabezado] = row?.c?.[index]?.v ?? "";
-    });
-    return obj;
-  }).filter(obj =>
-    Object.values(obj).some(valor => String(valor ?? "").trim() !== "")
-  ).map(normalizarFila);
 }
 
 function csvAObjetos(texto){
@@ -1021,7 +1000,7 @@ async function manejarExcel(evento){
 
 function cargarEjemplos(){
   renderizar(ejemplos);
-  setStatus("Mostrando ejemplos de prueba. Para usar tus etiquetas reales, pulsa «Actualizar desde Google Sheets».");
+  setStatus("Mostrando " + ejemplos.length + " ejemplos.");
 }
 </script>
 </body>
