@@ -1,0 +1,51 @@
+name: Sincronizar Google Sheets
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data.json"
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar hoja publicada
+        env:
+          CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTu9tixL9C-0pepp1wl6cR7YXfqHoJMUbjAqEyNFMGigwa31KRUPAWPH8cuj8fXQzCK4tI4dqiuKSx6/pub?output=csv"
+        run: |
+          curl -fL --retry 3 --connect-timeout 20 "$CSV_URL" -o source.csv
+          test -s source.csv
+
+      - name: Convertir CSV a JSON
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+
+          raw = Path("source.csv").read_text(encoding="utf-8-sig")
+          rows = list(csv.DictReader(raw.splitlines()))
+          rows = [r for r in rows if any(str(v or "").strip() for v in r.values())]
+          Path("data.json").write_text(
+              json.dumps(rows, ensure_ascii=False, separators=(",", ":")),
+              encoding="utf-8"
+          )
+          print(f"Productos sincronizados: {len(rows)}")
+          if not rows:
+              raise SystemExit("La hoja publicada no contiene productos.")
+          PY
+
+      - name: Guardar data.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Actualizar etiquetas desde Google Sheets [skip ci]"
+          git push
