@@ -499,7 +499,7 @@ input[type=file]{
   <button class="printershare" onclick="enviarPrinterShare()">📲 PrinterShare · Zebra</button>
   <button class="secondary" onclick="cargarEjemplos()">🧪 Ver ejemplos</button>
 
-  <div id="status" class="status">✓ Etiquetas de ejemplo listas.</div>
+  <div id="status" class="status">Cargando etiquetas desde Google Sheets…</div>
 </section>
 
 <section class="instructions">
@@ -510,26 +510,7 @@ input[type=file]{
   Los enlaces de imágenes pueden ser URLs directas de ImgBB.
 </section>
 
-<main id="labels">
-  <div class="label-wrap">
-    <article class="label" style="--c1:#f7f7f7;--c2:#ef4444">
-      <div class="brand-band">PEÑAFIEL SANGRÍA</div>
-      <div class="route-area"><div class="route-fallback">RUTA 1371</div></div>
-      <div class="main-area">
-        <div class="logo-area one">
-          <div class="no-logo">LOGO DEL PRODUCTO</div>
-        </div>
-        <div class="price-area">
-          <div class="price-main">$18</div>
-        </div>
-      </div>
-      <div class="size-band">600 ML</div>
-    </article>
-    <div class="label-actions">
-      <button onclick="cargarEjemplos()">🧪 Ver ejemplos</button>
-    </div>
-  </div>
-</main>
+<main id="labels"></main>
 
 </div>
 
@@ -603,10 +584,7 @@ const ejemplos = [
 document.getElementById("excelInput").addEventListener("change", manejarExcel);
 
 window.addEventListener("DOMContentLoaded", () => {
-  // La página siempre inicia mostrando las etiquetas de ejemplo.
-  // Google Sheets se consulta únicamente al pulsar "Actualizar desde Google Sheets",
-  // para que una falla de conexión nunca bloquee ni deje vacía la página.
-  cargarEjemplos();
+  cargarGoogleSheets();
 
   if(new URLSearchParams(window.location.search).get("printershare") === "thermal"){
     document.body.classList.add("thermal-print");
@@ -874,9 +852,9 @@ function imprimirUna(index){
 }
 
 async function cargarGoogleSheets(){
-  // Mostramos ejemplos inmediatamente para que la página nunca quede vacía.
-  renderizar(ejemplos);
-  setStatus("Cargando productos desde Google Sheets…");
+  const contenedor = document.getElementById("labels");
+  contenedor.innerHTML = '<div class="empty">Cargando etiquetas desde Google Sheets…</div>';
+  setStatus("Cargando etiquetas desde Google Sheets…");
 
   try{
     let filas = [];
@@ -886,45 +864,102 @@ async function cargarGoogleSheets(){
       try{
         const controlador = new AbortController();
         const temporizador = setTimeout(() => controlador.abort(),8000);
-
         let respuesta;
         try{
-          respuesta = await fetch(url,{
-            cache:"no-store",
-            signal:controlador.signal
-          });
+          respuesta = await fetch(url,{method:"GET",cache:"no-store",signal:controlador.signal});
         }finally{
           clearTimeout(temporizador);
         }
-        if(!respuesta.ok){
-          throw new Error("HTTP " + respuesta.status);
-        }
-
+        if(!respuesta.ok) throw new Error("HTTP " + respuesta.status);
         const texto = await respuesta.text();
         const candidatas = csvAObjetos(texto);
-
-        if(candidatas.length){
-          filas = candidatas;
-          break;
-        }
-
-        throw new Error("La respuesta no contiene filas de productos.");
+        if(candidatas.length){ filas = candidatas; break; }
+        throw new Error("Google Sheets devolvió un archivo sin productos.");
       }catch(error){
         ultimoError = error;
       }
     }
 
-    if(!filas.length){
-      throw ultimoError || new Error("No se pudo leer la hoja.");
-    }
+    if(!filas.length) filas = await cargarGoogleSheetsJSONP();
+    if(!filas.length) throw ultimoError || new Error("La hoja no contiene productos.");
 
     renderizar(filas);
     setStatus("✓ " + filas.length + " etiquetas cargadas desde Google Sheets.");
   }catch(error){
     console.error("Google Sheets:",error);
-    renderizar(ejemplos);
-    setStatus("⚠️ Google Sheets no respondió. Se muestran las etiquetas de ejemplo; puedes intentar «Actualizar desde Google Sheets» nuevamente.");
+    contenedor.innerHTML =
+      '<div class="empty"><strong>No se pudieron cargar las etiquetas de Google Sheets.</strong><br>' +
+      'Pulsa «Actualizar desde Google Sheets» para volver a intentarlo.</div>';
+    setStatus("❌ No fue posible leer Google Sheets: " + (error.message || "error de conexión"));
   }
+}
+
+function cargarGoogleSheetsJSONP(){
+  return new Promise((resolve,reject) => {
+    const callbackName = "__googleSheets_" + Date.now() + "_" + Math.floor(Math.random()*10000);
+    const script = document.createElement("script");
+    let terminado = false;
+
+    const limpiar = () => {
+      terminado = true;
+      clearTimeout(temporizador);
+      delete window[callbackName];
+      script.remove();
+    };
+
+    const temporizador = setTimeout(() => {
+      if(terminado) return;
+      limpiar();
+      reject(new Error("Google Sheets no respondió a tiempo."));
+    },10000);
+
+    window[callbackName] = data => {
+      try{
+        const filas = gvizAObjetos(data);
+        limpiar();
+        if(!filas.length){
+          reject(new Error("Google Sheets respondió sin filas de productos."));
+          return;
+        }
+        resolve(filas);
+      }catch(error){
+        limpiar();
+        reject(error);
+      }
+    };
+
+    script.onerror = () => {
+      limpiar();
+      reject(new Error("No se pudo conectar con Google Sheets."));
+    };
+
+    script.src =
+      "https://docs.google.com/spreadsheets/d/" +
+      encodeURIComponent(GOOGLE_SHEET_ID) +
+      "/gviz/tq?tqx=" +
+      encodeURIComponent("responseHandler:" + callbackName);
+
+    document.head.appendChild(script);
+  });
+}
+
+function gvizAObjetos(data){
+  const tabla = data?.table;
+  if(!tabla || !Array.isArray(tabla.cols) || !Array.isArray(tabla.rows)) return [];
+
+  const encabezados = tabla.cols.map((col,index) =>
+    String(col?.label || col?.id || "col" + index).trim()
+  );
+
+  return tabla.rows.map(row => {
+    const obj = {};
+    encabezados.forEach((encabezado,index) => {
+      obj[encabezado] = row?.c?.[index]?.v ?? "";
+    });
+    return obj;
+  }).filter(obj =>
+    Object.values(obj).some(valor => String(valor ?? "").trim() !== "")
+  ).map(normalizarFila);
 }
 
 function csvAObjetos(texto){
@@ -1035,7 +1070,7 @@ async function manejarExcel(evento){
 
 function cargarEjemplos(){
   renderizar(ejemplos);
-  setStatus("Mostrando " + ejemplos.length + " ejemplos.");
+  setStatus("Mostrando ejemplos de prueba. Para usar tus etiquetas reales, pulsa «Actualizar desde Google Sheets».");
 }
 </script>
 </body>
