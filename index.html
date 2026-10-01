@@ -7,6 +7,7 @@
 <title>Precio Enfriador | Ruta 1371</title>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
 :root{
@@ -497,8 +498,7 @@ input[type=file]{
   <input id="excelInput" type="file" accept=".xlsx,.xls,.csv">
 
   <button class="green" onclick="imprimirCarta()">🖨️ Imprimir en hoja carta</button>
-  <button class="thermal" onclick="imprimirTermica()">🧾 Imprimir rollo Zebra</button>
-  <button class="printershare" onclick="enviarPrinterShare()">📲 PrinterShare · Zebra</button>
+  <button class="thermal" onclick="generarCPCLZQ310()">🧾 Generar CPCL para Zebra ZQ310</button>
   <button class="secondary" onclick="cargarEjemplos()">🧪 Ver ejemplos</button>
 
   <div id="status" class="status">Cargando etiquetas desde Google Sheets…</div>
@@ -508,7 +508,9 @@ input[type=file]{
   <strong>Columnas esperadas:</strong>
   LogoRuta, Logo1, Logo2, Marca, Tamaño, PrecioCaja, PrecioPublico, ColorInicio, ColorFin.
   <br>
-  <strong>Formato de impresión:</strong> cada etiqueta mide aproximadamente 7 × 5 cm (70 × 50 mm).
+  <strong>Formato de impresión:</strong> hoja carta = 70 × 50 mm. Para la <strong>Zebra ZQ310</strong>,
+  el botón térmico genera un archivo <strong>CPCL</strong> de 400 × 286 puntos (aprox. 50 × 36 mm).
+  En Android puedes compartirlo con Zebra Printer Setup Utility o usar «Available Files».
   Los enlaces de imágenes pueden ser URLs directas de ImgBB.
 </section>
 
@@ -587,9 +589,6 @@ document.getElementById("excelInput").addEventListener("change", manejarExcel);
 
 window.addEventListener("DOMContentLoaded", () => {
   cargarGoogleSheets();
-  if(new URLSearchParams(window.location.search).get("printershare") === "thermal"){
-    document.body.classList.add("thermal-print");
-  }
 });
 
 function imprimirCarta(){
@@ -597,41 +596,99 @@ function imprimirCarta(){
   window.print();
 }
 
-function imprimirTermica(){
-  document.body.classList.add("thermal-print");
-
-  // Impresión térmica Zebra: rollo de 50 mm de ancho.
-  setTimeout(() => window.print(),100);
-
-  setTimeout(() => {
-    document.body.classList.remove("thermal-print");
-  },2500);
+async function generarCPCLZQ310(){
+  const productos = window.__productosActuales || [];
+  const labels = [...document.querySelectorAll(".label")];
+  if(!productos.length || !labels.length){
+    setStatus("❌ Primero carga las etiquetas desde Google Sheets.");
+    return;
+  }
+  if(typeof html2canvas === "undefined"){
+    setStatus("❌ No se cargó el generador gráfico. Recarga la página.");
+    return;
+  }
+  setStatus("Preparando archivo CPCL para la ZQ310…");
+  try{
+    const partes=[];
+    for(let i=0;i<Math.min(labels.length,productos.length);i++){
+      const canvas=await html2canvas(labels[i],{
+        backgroundColor:"#ffffff",
+        scale:1,
+        useCORS:true,
+        allowTaint:false,
+        logging:false
+      });
+      const bitmap=canvasA1Bit(canvas,400,286);
+      partes.push(bitmapToCPCL(bitmap,400,286));
+    }
+    const contenido=partes.join("\r\n");
+    const blob=new Blob([contenido],{type:"application/octet-stream"});
+    const archivo=new File([blob],"etiquetas-zq310.cpcl",{type:"application/octet-stream"});
+    if(navigator.canShare && navigator.canShare({files:[archivo]})){
+      try{
+        await navigator.share({
+          title:"Etiquetas Zebra ZQ310",
+          text:"Archivo CPCL generado por Precio Enfriador.",
+          files:[archivo]
+        });
+        setStatus("✓ Archivo CPCL enviado al menú de compartir.");
+        return;
+      }catch(error){
+        if(error?.name==="AbortError"){
+          setStatus("Compartir cancelado.");
+          return;
+        }
+      }
+    }
+    descargarArchivo(blob,"etiquetas-zq310.cpcl");
+    setStatus("✓ Archivo CPCL descargado. En Zebra Printer Setup Utility usa «Available Files» para enviarlo a la ZQ310.");
+  }catch(error){
+    console.error("CPCL ZQ310:",error);
+    setStatus("❌ No se pudo generar el archivo CPCL: "+(error.message||"error"));
+  }
 }
 
-async function enviarPrinterShare(){
-  const url = new URL(window.location.href);
-  url.searchParams.set("printershare","thermal");
-
-  const datos = {
-    title: "Etiquetas térmicas - Precio Enfriador",
-    text: "Etiquetas de precio en formato térmico de 50 mm de ancho.",
-    url: url.toString()
-  };
-
-  try{
-    if(navigator.share){
-      await navigator.share(datos);
-      setStatus("✓ Selecciona PrinterShare en la ventana de compartir.");
-    }else{
-      window.open(url.toString(),"_blank");
-      setStatus("Abre la página y usa Compartir → PrinterShare.");
-    }
-  }catch(error){
-    if(error?.name !== "AbortError"){
-      window.open(url.toString(),"_blank");
-      setStatus("Abre la página y usa Compartir → PrinterShare.");
+function canvasA1Bit(canvas,targetWidth,targetHeight){
+  const salida=document.createElement("canvas");
+  salida.width=targetWidth; salida.height=targetHeight;
+  const ctx=salida.getContext("2d",{willReadFrequently:true});
+  ctx.fillStyle="#fff"; ctx.fillRect(0,0,targetWidth,targetHeight);
+  ctx.drawImage(canvas,0,0,targetWidth,targetHeight);
+  const data=ctx.getImageData(0,0,targetWidth,targetHeight).data;
+  const bytesPerRow=Math.ceil(targetWidth/8);
+  const bytes=new Uint8Array(bytesPerRow*targetHeight);
+  for(let y=0;y<targetHeight;y++){
+    for(let x=0;x<targetWidth;x++){
+      const i=(y*targetWidth+x)*4;
+      const lum=.299*data[i]+.587*data[i+1]+.114*data[i+2];
+      if(data[i+3]>30 && lum<185){
+        bytes[y*bytesPerRow+(x>>3)]|=(0x80>>(x&7));
+      }
     }
   }
+  return {bytes,bytesPerRow,height:targetHeight};
+}
+
+function bitmapToCPCL(bitmap,width,height){
+  let hex="";
+  for(const byte of bitmap.bytes) hex+=byte.toString(16).padStart(2,"0").toUpperCase();
+  return [
+    "! 0 200 200 "+height+" 1",
+    "PW "+width,
+    "EG "+bitmap.bytesPerRow+" "+height+" 0 0 "+hex,
+    "FORM",
+    "PRINT"
+  ].join("\r\n");
+}
+
+function descargarArchivo(blob,nombre){
+  const enlace=document.createElement("a");
+  enlace.href=URL.createObjectURL(blob);
+  enlace.download=nombre;
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  setTimeout(()=>URL.revokeObjectURL(enlace.href),1000);
 }
 
 function decoracionTemporada(index){
