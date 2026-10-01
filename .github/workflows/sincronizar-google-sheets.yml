@@ -1,0 +1,57 @@
+name: Sincronizar Google Sheets
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data.json"
+  workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar hoja desde Google Sheets
+        env:
+          SHEET_ID: "1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs"
+          PUBLISHED_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTu9tixL9C-0pepp1wl6cR7YXfqHoJMUbjAqEyNFMGigwa31KRUPAWPH8cuj8fXQzCK4tI4dqiuKSx6/pub?output=csv"
+        run: |
+          set -e
+          if curl -fL --retry 3 --connect-timeout 20 "$PUBLISHED_CSV_URL" -o source.csv && test -s source.csv; then
+            echo "OK: publicación CSV de Google Sheets"
+          else
+            echo "La URL publicada no respondió; probando Google Visualization API..."
+            curl -fL --retry 3 --connect-timeout 20 "https://docs.google.com/spreadsheets/d/$SHEET_ID/gviz/tq?tqx=out:csv" -o source.csv
+            test -s source.csv
+          fi
+
+      - name: Convertir CSV a JSON
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          raw = Path("source.csv").read_text(encoding="utf-8-sig")
+          rows = list(csv.DictReader(raw.splitlines()))
+          rows = [r for r in rows if any(str(v or "").strip() for v in r.values())]
+          if not rows:
+              raise SystemExit("La hoja de Google Sheets no contiene productos.")
+          Path("data.json").write_text(json.dumps(rows, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+          print(f"Productos sincronizados: {len(rows)}")
+          PY
+
+      - name: Guardar data.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          if git diff --cached --quiet; then
+            echo "Sin cambios en los datos."
+            exit 0
+          fi
+          git commit -m "Actualizar etiquetas desde Google Sheets [skip ci]"
+          git push
