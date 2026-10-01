@@ -16,6 +16,9 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
       - name: Descargar hoja desde Google Sheets
         env:
           SHEET_ID: "1kpHY1Orfi3tTHVtCkSiwDcBAPNQ6YAHOTykjkWAsdIs"
